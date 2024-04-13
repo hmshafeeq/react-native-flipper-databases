@@ -2,8 +2,7 @@ import { addPlugin } from 'react-native-flipper';
 
 import { DatabasesFlipperPlugin } from './databasesFlipperPlugin';
 import { PouchDBDriver } from './drivers/pouchdb';
-import { QuickSQLiteStorageDriver } from './drivers/QuickSQLite';
-import { RealmDriver } from './drivers/realm';
+import { QuickSQLiteStorageDriver } from './drivers/QuickSQLite'; 
 import { SQLiteStorageDriver } from './drivers/SQLiteStorage';
 import { VasernDriver } from './drivers/vasern';
 import { WatermelonDBDriver } from './drivers/watermelondb';
@@ -14,8 +13,7 @@ export function connectDatabases(databaseDrivers: DatabaseDriver[]) {
 }
 
 export const WatermelonDB = WatermelonDBDriver;
-
-export const RealmDB = RealmDriver;
+ 
 
 export const PouchDB = PouchDBDriver;
 

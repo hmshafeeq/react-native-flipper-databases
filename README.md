@@ -93,35 +93,6 @@ if (__DEV__) {
   ]);
 }
 
-/// ReactNativeFlipperDatabases - END
-
-// ...
-```
-
-### [MongoDB Realm](https://docs.mongodb.com/realm/sdk/react-native/)
-
-#### Setup
-
-Attach an open Realm:
-
-```js
-// ...
-
-const realm = await Realm.open(config);
-
-/// FlipperDatabasesPlugin - START
-
-if (__DEV__) {
-  // Import connectDatabases function and required DBDrivers
-  const { connectDatabases, RealmDB } = require('react-native-flipper-databases');
-
-  connectDatabases([
-    new RealmDB('Realm', realm), // Pass in a realm name and an open realm reference
-  ]);
-}
-
-/// FlipperDatabasesPlugin - END
-
 // ...
 ```
 
@@ -286,8 +257,7 @@ yarn bootstrap
 
 - launch one of the following scripts from the root folder
 
-  - `example:watermelon` to launch the [`WatermelonDB`](#watermelondb) example app
-  - `example:realm` to launch the [`MongoDB Realm`](#mongodb-realm) example app
+  - `example:watermelon` to launch the [`WatermelonDB`](#watermelondb) example app 
   - `example:pouch` to launch the [`PouchDB`](#pouchdb) example app
   - `example:vasern` to launch the [`Vasern`](#vasern) example app
   - `example:sqlitestorage` to launch the [`SQLite Storage`](#react-native-sqlite-storage) example app
