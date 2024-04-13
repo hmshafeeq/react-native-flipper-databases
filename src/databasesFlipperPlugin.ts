@@ -1,11 +1,7 @@
 import type { Flipper } from 'react-native-flipper';
 
 import { DatabasesManager } from './databasesManager';
-import {
-  getInvalidDatabaseError,
-  getInvalidRequestError,
-  getSqlExecutionError,
-} from './errors';
+import { getInvalidDatabaseError, getInvalidRequestError, getSqlExecutionError } from './errors';
 import {
   databaseExecuteSqlResponseToFlipperObject,
   databaseGetTableDataReponseToFlipperObject,
@@ -56,9 +52,7 @@ export class DatabasesFlipperPlugin implements Flipper.FlipperPlugin {
   private listenForCommands(connection: Flipper.FlipperConnection) {
     connection.receive(DATABASE_LIST_COMMAND, async (_data, responder) => {
       responder.success(
-        await databaseListToFlipperArray(
-          await this.databasesManager.getDatabases()
-        )
+        await databaseListToFlipperArray(await this.databasesManager.getDatabases())
       );
     });
 
@@ -78,9 +72,7 @@ export class DatabasesFlipperPlugin implements Flipper.FlipperPlugin {
         return responder.error(getInvalidDatabaseError());
       }
 
-      responder.success(
-        databaseGetTableStructureResponseToFlipperObject(tableStructure)
-      );
+      responder.success(databaseGetTableStructureResponseToFlipperObject(tableStructure));
     });
 
     connection.receive(GET_TABLE_DATA_COMMAND, async (data, responder) => {
@@ -113,10 +105,7 @@ export class DatabasesFlipperPlugin implements Flipper.FlipperPlugin {
         return responder.error(getInvalidRequestError());
       }
 
-      const tableInfo = await this.databasesManager.getTableInfo(
-        req.databaseId,
-        req.table
-      );
+      const tableInfo = await this.databasesManager.getTableInfo(req.databaseId, req.table);
 
       if (!tableInfo) {
         return responder.error(getInvalidDatabaseError());
@@ -141,9 +130,7 @@ export class DatabasesFlipperPlugin implements Flipper.FlipperPlugin {
           return responder.error(getInvalidDatabaseError());
         }
 
-        responder.success(
-          databaseExecuteSqlResponseToFlipperObject(executeSqlResponse)
-        );
+        responder.success(databaseExecuteSqlResponseToFlipperObject(executeSqlResponse));
       } catch (err) {
         return responder.error(getSqlExecutionError(err));
       }

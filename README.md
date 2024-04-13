@@ -2,7 +2,7 @@
 
 > Flipper Databases plugin for React Native
 
-[![license](https://img.shields.io/github/license/panz3r/react-native-flipper-databases.svg)](LICENSE) [![Build & Test](https://github.com/panz3r/react-native-flipper-databases/workflows/Build%20&%20Test/badge.svg)](https://github.com/panz3r/react-native-flipper-databases/actions) [![Github Issues](https://img.shields.io/github/issues/panz3r/react-native-flipper-databases.svg)](https://github.com/panz3r/react-native-flipper-databases/issues)
+[![license](https://img.shields.io/npm/l/react-native-flipper-databases)](LICENSE) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/panz3r/react-native-flipper-databases.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/panz3r/react-native-flipper-databases/context:javascript)
 
 [![NPM version](https://img.shields.io/npm/v/react-native-flipper-databases.svg)](https://npmjs.com/package/react-native-flipper-databases) [![NPM downloads](https://img.shields.io/npm/dm/react-native-flipper-databases.svg)](https://npmjs.com/package/react-native-flipper-databases)
 
@@ -56,9 +56,28 @@ import com.facebook.flipper.plugins.sharedpreferences.SharedPreferencesFlipperPl
 
 See [facebook/flipper#1628](https://github.com/facebook/flipper/issues/1628) for more details.
 
+### Expo
+
+When sticking to a managed [Expo](https://expo.dev/) project, it's impossible to make the necessary modifications to the `ReactNativeFlipper.java` file.
+
+[@liamdawson](https://github.com/liamdawson) wrote a basic plugin to automate those changes, which will ensure Expo prebuild and builds via EAS will disable the integrated Databases plugin on Android.
+
+See [@liamdawson/disable-react-native-flipper-databases-expo-plugin](https://www.npmjs.com/package/@liamdawson/disable-react-native-flipper-databases-expo-plugin) for more info.
+
 ## Usage
 
-For [WatermelonDB](https://nozbe.github.io/WatermelonDB/):
+### [WatermelonDB](https://nozbe.github.io/WatermelonDB/)
+
+#### Compatibility
+
+| WatermelonDB Version | Use Version |
+| -------------------- | ----------- |
+| >=0.24.0             | 2.x         |
+| <0.24.0              | 1.x         |
+
+#### Setup
+
+Attach a WatermelonDB database:
 
 ```js
 // ...
@@ -66,14 +85,11 @@ For [WatermelonDB](https://nozbe.github.io/WatermelonDB/):
 /// ReactNativeFlipperDatabases - START
 
 if (__DEV__) {
-  // Import connectDatabases function
-  const connectDatabases = require('react-native-flipper-databases').default;
-
-  // Import required DBDrivers
-  const WatermelonDBDriver = require('react-native-flipper-databases/src/drivers/watermelondb').default;
+  // Import connectDatabases function and required DBDrivers
+  const { connectDatabases, WatermelonDB } = require('react-native-flipper-databases');
 
   connectDatabases([
-    new WatermelonDBDriver(database), // Pass in database definition
+    new WatermelonDB(database), // Pass in database definition
   ]);
 }
 
@@ -81,6 +97,202 @@ if (__DEV__) {
 
 // ...
 ```
+
+### [MongoDB Realm](https://docs.mongodb.com/realm/sdk/react-native/)
+
+#### Setup
+
+Attach an open Realm:
+
+```js
+// ...
+
+const realm = await Realm.open(config);
+
+/// FlipperDatabasesPlugin - START
+
+if (__DEV__) {
+  // Import connectDatabases function and required DBDrivers
+  const { connectDatabases, RealmDB } = require('react-native-flipper-databases');
+
+  connectDatabases([
+    new RealmDB('Realm', realm), // Pass in a realm name and an open realm reference
+  ]);
+}
+
+/// FlipperDatabasesPlugin - END
+
+// ...
+```
+
+### [PouchDB](https://pouchdb.com/)
+
+#### Setup
+
+Attach an open PouchDB database:
+
+```js
+// ...
+
+const db = new PouchDB('db', {
+  adapter: 'react-native-sqlite',
+});
+
+/// ReactNativeFlipperDatabases - START
+
+if (__DEV__) {
+  // Import connectDatabases function and required DBDrivers
+  const {
+    connectDatabases,
+    PouchDB: PouchDBDriver,
+  } = require('react-native-flipper-databases');
+
+  connectDatabases([
+    new PouchDBDriver([db]), // Pass in database definitions
+  ]);
+}
+
+/// ReactNativeFlipperDatabases - END
+
+// ...
+```
+
+### [Vasern](https://vasern.github.io/)
+
+#### Setup
+
+Attach an open Vasern database:
+
+```js
+// ...
+
+export const VasernDB = new Vasern({
+  // Vasern config
+});
+
+/// ReactNativeFlipperDatabases - START
+
+if (__DEV__) {
+  // Import connectDatabases function and required DBDrivers
+  const {
+    connectDatabases,
+    VasernDB: VasernDBDriver,
+  } = require('react-native-flipper-databases');
+
+  connectDatabases([
+    new VasernDBDriver(VasernDB), // Pass in database definitions
+  ]);
+}
+
+/// ReactNativeFlipperDatabases - END
+
+// ...
+```
+
+### [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)
+
+#### Setup
+
+Attach an open SQLite database (with Promise support enabled)
+
+```js
+// ...
+
+SQLite.enablePromise(true);
+
+async function openDatabase() {
+  const db = await SQLite.openDatabase({ name: 'data.db' });
+
+  // Create tables
+
+  /// ReactNativeFlipperDatabases - START
+
+  if (__DEV__) {
+    // Import connectDatabases function and required DBDrivers
+    const { connectDatabases, SQLiteStorage } = require('react-native-flipper-databases');
+    connectDatabases([
+      // Pass in database definitions
+      new SQLiteStorage([
+        {
+          name: 'data.db',
+          database: db,
+        },
+      ]),
+    ]);
+  }
+
+  /// ReactNativeFlipperDatabases - END
+
+  return db;
+}
+
+// ...
+```
+
+### [react-native-quick-sqlite](https://github.com/ospfranco/react-native-quick-sqlite)
+
+#### Setup
+
+```js
+import { openDatabase } from 'react-native-quick-sqlite'
+
+// ...
+
+/// ReactNativeFlipperDatabases - START
+
+if (__DEV__) {
+  // Import connectDatabases function and required DBDrivers
+  const {
+    connectDatabases,
+    QuickSQLiteStorage,
+  } = require('react-native-flipper-databases');
+
+  openDatabase(
+    { name: 'data.db' },
+    (db) => {
+      connectDatabases([
+        new QuickSQLiteStorage([
+          {
+            name: 'data.db',
+            database: db,
+          },
+        ]),
+      ])
+    },
+    () => {},
+  )
+}
+
+/// ReactNativeFlipperDatabases - END
+
+// ...
+```
+
+## Examples
+
+To see how to implement this plugin and test how it works some examples are provided.
+
+To run the examples:
+
+- clone the repo
+```sh
+git clone https://codeberg.org/panz3r/react-native-flipper-databases.git
+```
+
+- bootstrap the project
+```sh
+yarn bootstrap
+```
+
+- launch one of the following scripts from the root folder
+
+  - `example:watermelon` to launch the [`WatermelonDB`](#watermelondb) example app
+  - `example:realm` to launch the [`MongoDB Realm`](#mongodb-realm) example app
+  - `example:pouch` to launch the [`PouchDB`](#pouchdb) example app
+  - `example:vasern` to launch the [`Vasern`](#vasern) example app
+  - `example:sqlitestorage` to launch the [`SQLite Storage`](#react-native-sqlite-storage) example app
+
+The plugin integrations are located inside the `src/infrastructure/database` folder of each example app.
 
 ## Contributing
 
@@ -92,8 +304,4 @@ MIT
 
 ---
 
-Made with :sparkles: & :heart: by [Mattia Panzeri](https://github.com/panz3r) and [contributors](https://github.com/panz3r/react-native-flipper-databases/graphs/contributors)
-
-If you found this project to be helpful, please consider buying me a coffee.
-
-[![buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/4f18nT0Nk)
+Made with :sparkles: & :heart: by [Mattia Panzeri](https://codeberg.org/panz3r) and [contributors](https://codeberg.org/panz3r/react-native-flipper-databases/activity)

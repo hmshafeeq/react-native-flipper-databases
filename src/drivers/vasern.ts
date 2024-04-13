@@ -1,5 +1,4 @@
-import { Q } from '@nozbe/watermelondb';
-import type { Database } from '@nozbe/watermelondb';
+import type Vasern from 'vasern';
 
 import type {
   DatabaseDescriptor,
@@ -10,10 +9,10 @@ import type {
   DatabaseGetTableStructureResponse,
 } from '../types';
 
-export class WatermelonDBDriver implements DatabaseDriver {
-  private readonly databaseName: string = 'WatermelonDB';
+export class VasernDriver implements DatabaseDriver {
+  private readonly databaseName: string = 'Vasern';
 
-  constructor(private readonly database: Database) {}
+  constructor(private readonly database: Vasern) {}
 
   async getDatabases(): Promise<DatabaseDescriptor[]> {
     return [
@@ -24,29 +23,26 @@ export class WatermelonDBDriver implements DatabaseDriver {
   }
 
   async getTableNames(_databaseDescriptor: DatabaseDescriptor): Promise<string[]> {
-    return Object.keys(this.database?.schema.tables ?? []);
+    return this.database.docs.map(doc => doc.name);
   }
 
   async getTableStructure(
     _databaseDescriptor: DatabaseDescriptor,
     table: string
   ): Promise<DatabaseGetTableStructureResponse> {
-    const { columns } = this.database?.schema.tables[table];
+    const { props: columns } = this.database.get(table);
 
     const columnsDef = Object.keys(columns).map(k => [
       k,
-      columns[k].type,
-      columns[k].isIndexed,
-      columns[k].isOptional,
+      (columns as unknown as Record<string, string>)[k].replaceAll('?', ''),
+      (columns as unknown as Record<string, string>)[k].startsWith('?'),
     ]);
 
     return {
-      structureColumns: ['name', 'type', 'isIndexed', 'isOptional'],
-      structureValues: columnsDef,
+      structureColumns: ['name', 'type', 'isOptional'],
+      structureValues: [['id', 'string', false]].concat(columnsDef),
       indexesColumns: ['name'],
-      indexesValues: Object.keys(columns)
-        .filter(k => columns[k].isIndexed)
-        .map(k => [k]),
+      indexesValues: [['id']],
     };
   }
 
@@ -56,28 +52,23 @@ export class WatermelonDBDriver implements DatabaseDriver {
     order: string | undefined,
     reverse: boolean,
     start: number,
-    count: number
+    _count: number
   ): Promise<DatabaseGetTableDataResponse> {
-    const { columns } = this.database.schema.tables[table];
+    const { props: columns } = this.database.get(table);
+
     const allColumns = [
       'id', // All tables automatically have a string column id to uniquely identify records.
       ...Object.keys(columns),
-      // All tables automatically have special columns for sync purposes
-      '_status',
-      '_changed',
-      'last_modified',
     ];
-    const collection = this.database.collections.get(table);
+    const collection = this.database.get(table);
 
-    const totalCount = await collection.query().fetchCount();
-    const results = await collection
-      .query(Q.sortBy(order ?? 'id', !reverse ? 'asc' : 'desc'), Q.skip(start), Q.take(count))
-      .fetch();
+    const totalCount = collection.count();
+    const results = collection.order(order ?? 'id', !reverse ? 'asc' : 'desc').data();
 
     return {
       columns: allColumns,
       values: results.map(row =>
-        allColumns.map(colName => (row._raw as unknown as { [key: string]: unknown })[colName])
+        allColumns.map(colName => (row as unknown as { [key: string]: unknown })[colName])
       ),
       start,
       count: totalCount,
@@ -89,8 +80,9 @@ export class WatermelonDBDriver implements DatabaseDriver {
     _databaseDescriptor: DatabaseDescriptor,
     table: string
   ): Promise<DatabaseGetTableInfoResponse> {
+    const { props } = this.database.get(table);
     return {
-      definition: JSON.stringify(this.database.schema.tables[table], null, 2),
+      definition: JSON.stringify(props, null, 2),
     };
   }
 
